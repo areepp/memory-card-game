@@ -6,7 +6,9 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 
 import java.net.URL;
@@ -16,6 +18,18 @@ public class HelloController implements Initializable {
 
     @FXML
     private GridPane gameGrid;
+
+    @FXML
+    private StackPane winScreen;
+
+    @FXML
+    private Label winMessage;
+
+    @FXML
+    private Label pairsFoundLabel;
+
+    @FXML
+    private Button restartButton;
 
     private final int gridSize = 4;
     private final List<String> tileValues = new ArrayList<>();
@@ -27,14 +41,27 @@ public class HelloController implements Initializable {
 
     private Timeline timeline;
 
+    private int pairsFound = 0;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         initializeGame();
     }
 
     private void initializeGame() {
+        resetGameState();
         populateTileValues();
         setupGrid();
+        winScreen.setVisible(false);
+        updatePairsFoundLabel();
+    }
+
+    private void resetGameState() {
+        pairsFound = 0;
+        firstButton = null;
+        secondButton = null;
+        tileValues.clear();
+        gameGrid.getChildren().clear(); // Clear previous buttons from the grid
     }
 
     private void populateTileValues() {
@@ -83,10 +110,11 @@ public class HelloController implements Initializable {
         isAnimating = true;
 
         if (firstButton.getUserData().equals(secondButton.getUserData())) {
-            // Match: Keep buttons revealed
+            pairsFound++;
+            updatePairsFoundLabel();
             resetTurn();
+            checkWinCondition();
         } else {
-            // No match: Hide buttons after 1.5 seconds
             timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), e -> {
                 firstButton.setText("");
                 secondButton.setText("");
@@ -100,5 +128,21 @@ public class HelloController implements Initializable {
         firstButton = null;
         secondButton = null;
         isAnimating = false;
+    }
+
+    private void updatePairsFoundLabel() {
+        pairsFoundLabel.setText("Pairs Found: " + pairsFound);
+    }
+
+    private void checkWinCondition() {
+        if (pairsFound == (gridSize * gridSize) / 2) {
+            winMessage.setText("Congratulations! You've found all pairs!");
+            winScreen.setVisible(true);
+        }
+    }
+
+    @FXML
+    private void restartGame(ActionEvent event) {
+        initializeGame();
     }
 }
