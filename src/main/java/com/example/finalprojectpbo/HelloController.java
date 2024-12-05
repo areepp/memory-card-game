@@ -1,148 +1,142 @@
 package com.example.finalprojectpbo;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
-import javafx.util.Duration;
+import javafx.scene.layout.VBox;
 
-import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-public class HelloController implements Initializable {
-
+public class HelloController {
+    @FXML
+    private VBox startScreen;
+    @FXML
+    private VBox gameScreen;
+    @FXML
+    private VBox winScreen;
+    @FXML
+    private Label pairsFoundLabel;
     @FXML
     private GridPane gameGrid;
 
-    @FXML
-    private StackPane winScreen;
-
-    @FXML
-    private Label winMessage;
-
-    @FXML
-    private Label pairsFoundLabel;
-
-    @FXML
-    private Button restartButton;
-
-    private final int gridSize = 4;
-    private final List<String> tileValues = new ArrayList<>();
-    private final Button[][] buttons = new Button[gridSize][gridSize];
-
+    private int gridSize;
+    private List<String> tileValues;
+    private Button[][] buttons;
     private Button firstButton = null;
     private Button secondButton = null;
-    private boolean isAnimating = false;
-
-    private Timeline timeline;
-
     private int pairsFound = 0;
+    private int totalPairs;
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
+    public void setGridSize4x4(ActionEvent event) {
+        setupGame(4);
+    }
+
+    public void setGridSize6x6(ActionEvent event) {
+        setupGame(6);
+    }
+
+    public void setGridSize8x8(ActionEvent event) {
+        setupGame(8);
+    }
+
+    private void setupGame(int size) {
+        gridSize = size;
+        totalPairs = (gridSize * gridSize) / 2;
+        pairsFound = 0;
+
+        pairsFoundLabel.setText("Pairs Found: 0");
+        startScreen.setVisible(false);
+        gameScreen.setVisible(true);
         initializeGame();
     }
 
     private void initializeGame() {
-        resetGameState();
-        populateTileValues();
-        setupGrid();
-        winScreen.setVisible(false);
-        updatePairsFoundLabel();
-    }
+        gameGrid.getChildren().clear(); // Clear previous buttons
+        buttons = new Button[gridSize][gridSize];
+        tileValues = generateTileValues();
 
-    private void resetGameState() {
-        pairsFound = 0;
-        firstButton = null;
-        secondButton = null;
-        tileValues.clear();
-        gameGrid.getChildren().clear(); // Clear previous buttons from the grid
-    }
-
-    private void populateTileValues() {
-        for (int i = 0; i < (gridSize * gridSize) / 2; i++) {
-            String value = String.valueOf((char) ('A' + i));
-            tileValues.add(value);
-            tileValues.add(value);
-        }
-        Collections.shuffle(tileValues);
-    }
-
-    private void setupGrid() {
         int index = 0;
         for (int row = 0; row < gridSize; row++) {
             for (int col = 0; col < gridSize; col++) {
                 Button button = new Button();
                 button.setPrefSize(100, 100);
-                button.setOnAction(this::handleTileClick);
+                button.setOnAction(event -> handleTileClick(button));
+                button.setUserData(tileValues.get(index++));
+
                 buttons[row][col] = button;
                 gameGrid.add(button, col, row);
-
-                button.setUserData(tileValues.get(index++));
             }
         }
     }
 
-    private void handleTileClick(ActionEvent event) {
-        if (isAnimating) return;
+    private List<String> generateTileValues() {
+        List<String> values = new ArrayList<>();
+        for (int i = 0; i < totalPairs; i++) {
+            String value = String.valueOf((char) ('A' + i));
+            values.add(value);
+            values.add(value);
+        }
+        Collections.shuffle(values);
+        return values;
+    }
 
-        Button clickedButton = (Button) event.getSource();
+    private void handleTileClick(Button clickedButton) {
+        if (clickedButton.getText().isEmpty()) {
+            clickedButton.setText((String) clickedButton.getUserData());
 
-        // Ignore already revealed buttons
-        if (!clickedButton.getText().isEmpty()) return;
-
-        clickedButton.setText((String) clickedButton.getUserData());
-
-        if (firstButton == null) {
-            firstButton = clickedButton;
-        } else {
-            secondButton = clickedButton;
-            checkMatch();
+            if (firstButton == null) {
+                firstButton = clickedButton;
+            } else if (secondButton == null) {
+                secondButton = clickedButton;
+                checkMatch();
+            }
         }
     }
 
     private void checkMatch() {
-        isAnimating = true;
-
         if (firstButton.getUserData().equals(secondButton.getUserData())) {
             pairsFound++;
-            updatePairsFoundLabel();
-            resetTurn();
-            checkWinCondition();
+            pairsFoundLabel.setText("Pairs Found: " + pairsFound);
+            firstButton = null;
+            secondButton = null;
+
+            if (pairsFound == totalPairs) {
+                showWinScreen();
+            }
         } else {
-            timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), e -> {
-                firstButton.setText("");
-                secondButton.setText("");
-                resetTurn();
-            }));
-            timeline.play();
+            Button tempFirst = firstButton;
+            Button tempSecond = secondButton;
+            firstButton = null;
+            secondButton = null;
+
+            // Use Platform.runLater to safely update the UI
+            new Thread(() -> {
+                try {
+                    Thread.sleep(1500); // Pause before hiding tiles
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                Platform.runLater(() -> {
+                    tempFirst.setText("");
+                    tempSecond.setText("");
+                });
+            }).start();
         }
     }
 
-    private void resetTurn() {
-        firstButton = null;
-        secondButton = null;
-        isAnimating = false;
+    private void showWinScreen() {
+        gameScreen.setVisible(false);
+        winScreen.setVisible(true);
     }
 
-    private void updatePairsFoundLabel() {
-        pairsFoundLabel.setText("Pairs Found: " + pairsFound);
-    }
-
-    private void checkWinCondition() {
-        if (pairsFound == (gridSize * gridSize) / 2) {
-            winMessage.setText("Congratulations! You've found all pairs!");
-            winScreen.setVisible(true);
-        }
-    }
-
-    @FXML
-    private void restartGame(ActionEvent event) {
-        initializeGame();
+    public void restartGame(ActionEvent event) {
+        winScreen.setVisible(false);
+        startScreen.setVisible(true);
     }
 }
