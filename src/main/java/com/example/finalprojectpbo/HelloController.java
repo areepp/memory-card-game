@@ -31,6 +31,7 @@ public class HelloController {
     private Button secondButton = null;
     private int pairsFound = 0;
     private int totalPairs;
+    private boolean isProcessing = false; // Prevent clicks during processing
 
     public void setGridSize4x4(ActionEvent event) {
         setupGame(4);
@@ -86,24 +87,29 @@ public class HelloController {
     }
 
     private void handleTileClick(Button clickedButton) {
-        if (clickedButton.getText().isEmpty()) {
-            clickedButton.setText((String) clickedButton.getUserData());
+        if (isProcessing || clickedButton.getText().isEmpty() == false) {
+            return; // Prevent clicks during processing or on already revealed tiles
+        }
 
-            if (firstButton == null) {
-                firstButton = clickedButton;
-            } else if (secondButton == null) {
-                secondButton = clickedButton;
-                checkMatch();
-            }
+        clickedButton.setText((String) clickedButton.getUserData());
+
+        if (firstButton == null) {
+            firstButton = clickedButton;
+        } else if (secondButton == null) {
+            secondButton = clickedButton;
+            checkMatch();
         }
     }
 
     private void checkMatch() {
+        isProcessing = true; // Disable interactions during check
+
         if (firstButton.getUserData().equals(secondButton.getUserData())) {
             pairsFound++;
             pairsFoundLabel.setText("Pairs Found: " + pairsFound);
             firstButton = null;
             secondButton = null;
+            isProcessing = false; // Re-enable interactions
 
             if (pairsFound == totalPairs) {
                 showWinScreen();
@@ -125,6 +131,7 @@ public class HelloController {
                 Platform.runLater(() -> {
                     tempFirst.setText("");
                     tempSecond.setText("");
+                    isProcessing = false; // Re-enable interactions after hiding tiles
                 });
             }).start();
         }
