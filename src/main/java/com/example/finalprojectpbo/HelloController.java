@@ -6,96 +6,99 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
-import javafx.scene.control.Control;
+import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class HelloController implements Initializable {
 
-    ArrayList<Button> buttons = new ArrayList<>();
+    @FXML
+    private GridPane gameGrid;
 
-    MemoryGame memoryGame = new MemoryGame();
+    private final int gridSize = 4;
+    private final List<String> tileValues = new ArrayList<>();
+    private final Button[][] buttons = new Button[gridSize][gridSize];
 
-    @FXML
-    private Button button0;
-    @FXML
-    private Button button1;
-    @FXML
-    private Button button2;
-    @FXML
-    private Button button3;
-    @FXML
-    private Button button4;
-    @FXML
-    private Button button5;
-    @FXML
-    private Button button6;
-    @FXML
-    private Button button7;
+    private Button firstButton = null;
+    private Button secondButton = null;
+    private boolean isAnimating = false;
 
-    Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), e -> hideButtons()));
-
-    private boolean firstButtonClicked = false;
-
-    private int firstButtonIndex;
-    private int secondButtonIndex;
-    private boolean match;
+    private Timeline timeline;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        memoryGame.setupGame();
-
-        buttons.addAll(Arrays.asList(button0, button1, button2, button3, button4,
-                button5, button6, button7));
+        initializeGame();
     }
 
-    @FXML
-    void buttonClicked(ActionEvent event) {
-        if(!firstButtonClicked){
-            //If next turn is started before old buttons are hidden
-            if(!match){
-                hideButtons();
-                timeline.stop();
+    private void initializeGame() {
+        populateTileValues();
+        setupGrid();
+    }
+
+    private void populateTileValues() {
+        for (int i = 0; i < (gridSize * gridSize) / 2; i++) {
+            String value = String.valueOf((char) ('A' + i));
+            tileValues.add(value);
+            tileValues.add(value);
+        }
+        Collections.shuffle(tileValues);
+    }
+
+    private void setupGrid() {
+        int index = 0;
+        for (int row = 0; row < gridSize; row++) {
+            for (int col = 0; col < gridSize; col++) {
+                Button button = new Button();
+                button.setPrefSize(100, 100);
+                button.setOnAction(this::handleTileClick);
+                buttons[row][col] = button;
+                gameGrid.add(button, col, row);
+
+                button.setUserData(tileValues.get(index++));
             }
-            match = false;
-            firstButtonClicked = true;
-
-            //Get clicked button memory letter
-            String buttonId = ((Control)event.getSource()).getId();
-            firstButtonIndex = Integer.parseInt(buttonId.substring(buttonId.length() - 1));
-
-            //Change clicked button text
-            buttons.get(firstButtonIndex).setText(memoryGame.getOptionAtIndex(firstButtonIndex));
-
-            return;
         }
-
-        //Get clicked button memory letter
-        String buttonId = ((Control)event.getSource()).getId();
-        secondButtonIndex = Integer.parseInt(buttonId.substring(buttonId.length() - 1));
-
-        //Change clicked button text
-        buttons.get(secondButtonIndex).setText(memoryGame.getOptionAtIndex(secondButtonIndex));
-
-        firstButtonClicked = false;
-
-        //Check if the two clicked button match
-        if(memoryGame.checkTwoPositions(firstButtonIndex,secondButtonIndex)){
-            System.out.println("Match");
-            match = true;
-            return;
-        }
-
-        timeline.play();
     }
 
-    private void hideButtons(){
-        buttons.get(firstButtonIndex).setText("");
-        buttons.get(secondButtonIndex).setText("");
+    private void handleTileClick(ActionEvent event) {
+        if (isAnimating) return;
+
+        Button clickedButton = (Button) event.getSource();
+
+        // Ignore already revealed buttons
+        if (!clickedButton.getText().isEmpty()) return;
+
+        clickedButton.setText((String) clickedButton.getUserData());
+
+        if (firstButton == null) {
+            firstButton = clickedButton;
+        } else {
+            secondButton = clickedButton;
+            checkMatch();
+        }
     }
 
+    private void checkMatch() {
+        isAnimating = true;
+
+        if (firstButton.getUserData().equals(secondButton.getUserData())) {
+            // Match: Keep buttons revealed
+            resetTurn();
+        } else {
+            // No match: Hide buttons after 1.5 seconds
+            timeline = new Timeline(new KeyFrame(Duration.seconds(1.5), e -> {
+                firstButton.setText("");
+                secondButton.setText("");
+                resetTurn();
+            }));
+            timeline.play();
+        }
+    }
+
+    private void resetTurn() {
+        firstButton = null;
+        secondButton = null;
+        isAnimating = false;
+    }
 }
