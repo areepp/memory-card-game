@@ -10,7 +10,7 @@ public class HelloApplication extends Application {
     public void start(Stage stage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
-        stage.setTitle("Memory Game");
+        stage.setTitle("Memory Matching Game");
         stage.setScene(scene);
         stage.setMaximized(true);
         stage.show();
