@@ -12,6 +12,7 @@ public class HelloApplication extends Application {
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Memory Game");
         stage.setScene(scene);
+        stage.setMaximized(true);
         stage.show();
     }
 
