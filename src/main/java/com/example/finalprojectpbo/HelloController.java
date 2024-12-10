@@ -100,8 +100,6 @@ public class HelloController {
             return; // Prevent clicks during processing or on already revealed tiles
         }
 
-        showWinScreen();
-
         String imageFileName = (String) clickedButton.getUserData();
         try {
             // For 4x4 grid, load images

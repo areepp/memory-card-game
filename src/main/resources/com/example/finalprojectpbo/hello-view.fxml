@@ -7,45 +7,38 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/15.0.1"
-      xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.example.finalprojectpbo.HelloController"
-      alignment="CENTER" spacing="20"
-      styleClass="root">
+<StackPane xmlns="http://javafx.com/javafx/15.0.1"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.example.finalprojectpbo.HelloController"
+           alignment="CENTER"
+           styleClass="root">
     <children>
         <!-- Start Screen -->
         <VBox fx:id="startScreen"
-              spacing="100" alignment="CENTER"
+              alignment="CENTER" spacing="50"
               styleClass="vbox-screen" visible="true">
-            <children>
-                <Label text="Choose Board Size" styleClass="label-large" />
-                <HBox spacing="20" alignment="CENTER">
-                    <children>
-                        <Button text="4x4" onAction="#setGridSize4x4" styleClass="button-large" />
-                        <Button text="6x6" onAction="#setGridSize6x6" styleClass="button-large" />
-                        <Button text="8x8" onAction="#setGridSize8x8" styleClass="button-large" />
-                    </children>
-                </HBox>
-            </children>
+            <Label text="Choose Board Size" styleClass="label-large" />
+            <HBox spacing="20" alignment="CENTER">
+                <Button text="4x4" onAction="#setGridSize4x4" styleClass="button-large" />
+                <Button text="6x6" onAction="#setGridSize6x6" styleClass="button-large" />
+                <Button text="8x8" onAction="#setGridSize8x8" styleClass="button-large" />
+            </HBox>
         </VBox>
 
         <!-- Game Screen -->
         <VBox fx:id="gameScreen"
-              spacing="20" alignment="CENTER"
+              alignment="CENTER" spacing="20"
               styleClass="vbox-screen" visible="false">
             <Label fx:id="pairsFoundLabel" text="Pairs Found: 0" styleClass="label-large" />
-            <GridPane fx:id="gameGrid" alignment="CENTER" style=" -fx-pref-width: 100%" hgap="10" vgap="10" />
+            <GridPane fx:id="gameGrid" alignment="CENTER" hgap="10" vgap="10" />
         </VBox>
 
         <!-- Win Screen -->
-        <StackPane alignment="CENTER">
-            <VBox fx:id="winScreen" spacing="20" alignment="CENTER" visible="false"
-                  styleClass="vbox-screen">
-                <children>
-                    <Label text="Congratulations! You've won!" alignment="CENTER" styleClass="label-large" />
-                    <Button text="Play Again" onAction="#restartGame" style="-fx-font-size: 18; -fx-pref-width: 150" />
-                </children>
-            </VBox>
-        </StackPane>
+        <VBox fx:id="winScreen"
+              alignment="CENTER" spacing="20"
+              styleClass="vbox-screen" visible="false">
+            <Label text="Congratulations! You've won!" styleClass="label-large" />
+            <Button text="Play Again" onAction="#restartGame" style="-fx-font-size: 18; -fx-pref-width: 150" />
+        </VBox>
     </children>
-</VBox>
+</StackPane>
