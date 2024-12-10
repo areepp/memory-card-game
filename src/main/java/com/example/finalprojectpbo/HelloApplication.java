@@ -10,6 +10,11 @@ public class HelloApplication extends Application {
     public void start(Stage stage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("hello-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
+
+        // Load the custom CSS file
+        String css = getClass().getResource("/style.css").toExternalForm();
+        scene.getStylesheets().add(css);
+
         stage.setTitle("Memory Matching Game");
         stage.setScene(scene);
         stage.setMaximized(true);
