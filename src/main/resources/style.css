@@ -1,0 +1,27 @@
+/* style.css */
+.root {
+    -fx-background-color: lightblue;
+    -fx-pref-width: 100%;
+    -fx-pref-height: 100%;
+}
+
+.label-large {
+    -fx-font-size: 24;
+}
+
+.button-large {
+    -fx-font-size: 18;
+    -fx-pref-width: 100;
+}
+
+.vbox-screen {
+    -fx-background-color: lightblue;
+    -fx-pref-width: 100%;
+    -fx-pref-height: 100%;
+}
+
+.game-grid {
+    -fx-pref-width: 100%;
+    -fx-hgap: 10;
+    -fx-vgap: 10;
+}

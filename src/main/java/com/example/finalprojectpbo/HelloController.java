@@ -7,6 +7,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -66,6 +68,12 @@ public class HelloController {
             for (int col = 0; col < gridSize; col++) {
                 Button button = new Button();
                 button.setPrefSize(100, 100);
+
+                ImageView imageView = new ImageView();
+                imageView.setFitWidth(100);
+                imageView.setFitHeight(100);
+                button.setGraphic(imageView);
+
                 button.setOnAction(event -> handleTileClick(button));
                 button.setUserData(tileValues.get(index++));
 
@@ -78,7 +86,8 @@ public class HelloController {
     private List<String> generateTileValues() {
         List<String> values = new ArrayList<>();
         for (int i = 0; i < totalPairs; i++) {
-            String value = String.valueOf((char) ('A' + i));
+            String value;
+            value = "image" + (i + 1) + ".png";
             values.add(value);
             values.add(value);
         }
@@ -87,11 +96,28 @@ public class HelloController {
     }
 
     private void handleTileClick(Button clickedButton) {
-        if (isProcessing || clickedButton.getText().isEmpty() == false) {
+        if (isProcessing || clickedButton.getGraphic() != null && ((ImageView) clickedButton.getGraphic()).getImage() != null) {
             return; // Prevent clicks during processing or on already revealed tiles
         }
 
-        clickedButton.setText((String) clickedButton.getUserData());
+        showWinScreen();
+
+        String imageFileName = (String) clickedButton.getUserData();
+        try {
+            // For 4x4 grid, load images
+            System.out.println("Attempting to load image: " + imageFileName);
+            java.io.InputStream imageStream = getClass().getResourceAsStream("/images/" + imageFileName);
+            if (imageStream == null) {
+                throw new Exception("Image resource not found: " + imageFileName);
+            }
+            Image image = new Image(imageStream);
+            ImageView imageView = (ImageView) clickedButton.getGraphic();
+            imageView.setImage(image);
+            System.out.println("Image successfully loaded.");
+        } catch (Exception e) {
+            System.out.println("Error loading image: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         if (firstButton == null) {
             firstButton = clickedButton;
@@ -120,7 +146,6 @@ public class HelloController {
             firstButton = null;
             secondButton = null;
 
-            // Use Platform.runLater to safely update the UI
             new Thread(() -> {
                 try {
                     Thread.sleep(1500); // Pause before hiding tiles
@@ -129,8 +154,8 @@ public class HelloController {
                 }
 
                 Platform.runLater(() -> {
-                    tempFirst.setText("");
-                    tempSecond.setText("");
+                    ((ImageView) tempFirst.getGraphic()).setImage(null);
+                    ((ImageView) tempSecond.getGraphic()).setImage(null);
                     isProcessing = false; // Re-enable interactions after hiding tiles
                 });
             }).start();
